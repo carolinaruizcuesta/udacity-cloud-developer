@@ -1,9 +1,11 @@
 import express, { Request, Response } from 'express';
 import bodyParser from 'body-parser';
 import {filterImageFromURL, deleteLocalFiles} from './util/util';
+import { ENOTEMPTY } from 'constants';
+import { nextTick } from 'process';
 
 const isImageURL = require('image-url-validator').default;
-var fs = require('fs');
+const fsExtra = require('fs-extra');
 
 (async () => {
 
@@ -24,6 +26,7 @@ var fs = require('fs');
   //    1
   //    1. validate the image_url query
   //    2. call filterImageFromURL(image_url) to filter the image
+  //    3. send the resulting file in the response
   //    4. deletes any files on the server on finish of the response
   // QUERY PARAMATERS
   //    image_url: URL of a publicly accessible image
@@ -31,6 +34,13 @@ var fs = require('fs');
   //   the filtered image file [!!TIP res.sendFile(filteredpath); might be useful]
 
   // > try it {{host}}/persons?name=the_name
+
+   //    4. deletes any files on the server on finish of the response
+  function emptyDir(){
+    const directory = __dirname + '/util/tmp';
+    fsExtra.emptyDirSync(directory);
+  }
+
   app.get( "/filteredimage/", async ( req: Request, res: Response ) => {
     let { image_url } = req.query;
 
@@ -46,19 +56,16 @@ var fs = require('fs');
                 .send('the url must be an image');
     }
 
-    var filtered
     //    2. call filterImageFromURL(image_url) to filter the image
     filterImageFromURL(image_url).then(function(filteredpath){
-      filtered = filteredpath; 
       //    3. send the resulting file in the response
-      return res.status(200).sendFile(filteredpath);
-
-    }); 
-    console.log(filtered);
-    fs.unlinkSync(filtered);
+      res.status(200).sendFile(filteredpath);
+    });
 
 
-  } );
+  } );  
+
+  app.use(emptyDir);
 
   /**************************************************************************** */
 
