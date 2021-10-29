@@ -1,11 +1,11 @@
 import express, { Request, Response } from 'express';
 import bodyParser from 'body-parser';
 import {filterImageFromURL, deleteLocalFiles} from './util/util';
-import { ENOTEMPTY } from 'constants';
-import { nextTick } from 'process';
+
 
 const isImageURL = require('image-url-validator').default;
 const fsExtra = require('fs-extra');
+var onFinished = require('on-finished');
 
 (async () => {
 
@@ -62,8 +62,13 @@ const fsExtra = require('fs-extra');
       res.status(200).sendFile(filteredpath);
     });
 
+    //    4. deletes any files on the server on finish of the response
+    onFinished(res, () => {
+      emptyDir(); 
+    });
 
-  } );  
+
+  });  
 
   app.use(emptyDir);
 
