@@ -1,11 +1,11 @@
 import express, { Request, Response } from 'express';
 import bodyParser from 'body-parser';
-import {filterImageFromURL, deleteLocalFiles} from './util/util';
+import { filterImageFromURL, emptyDirFiles } from './util/util';
 
 
-const isImageURL = require('image-url-validator').default;
-const fsExtra = require('fs-extra');
 var onFinished = require('on-finished');
+
+
 
 (async () => {
 
@@ -19,7 +19,6 @@ var onFinished = require('on-finished');
   app.use(bodyParser.json());
 
 
-  // @TODO1 IMPLEMENT A RESTFUL ENDPOINT
   // GET /filteredimage?image_url={{URL}}
   // endpoint to filter an image from a public url.
   // IT SHOULD
@@ -32,15 +31,7 @@ var onFinished = require('on-finished');
   //    image_url: URL of a publicly accessible image
   // RETURNS
   //   the filtered image file [!!TIP res.sendFile(filteredpath); might be useful]
-
-  // > try it {{host}}/persons?name=the_name
-
-   //    4. deletes any files on the server on finish of the response
-  function emptyDir(){
-    const directory = __dirname + '/util/tmp';
-    fsExtra.emptyDirSync(directory);
-  }
-
+  
   app.get( "/filteredimage/", async ( req: Request, res: Response ) => {
     let { image_url } = req.query;
 
@@ -49,32 +40,28 @@ var onFinished = require('on-finished');
       return res.status(400)
                 .send(`image url is required`);
     }
-    const is_image = await isImageURL(image_url); 
-    console.log(is_image);
+    /*
+    var image_url_aux = image_url;
+    var is_image = (image_url_aux.match(/.(jpeg|jpg|gif|png)$/) != null);
+  
     if(! is_image ){
       return res.status(400)
                 .send('the url must be an image');
-    }
+    } */
 
     //    2. call filterImageFromURL(image_url) to filter the image
-    filterImageFromURL(image_url).then(function(filteredpath){
+    await filterImageFromURL(image_url).then(function(filteredpath){
       //    3. send the resulting file in the response
       res.status(200).sendFile(filteredpath);
     });
 
     //    4. deletes any files on the server on finish of the response
     onFinished(res, () => {
-      emptyDir(); 
+      emptyDirFiles(); 
     });
-
 
   });  
 
-  app.use(emptyDir);
-
-  /**************************************************************************** */
-
-  //! END @TODO1
   
   // Root Endpoint
   // Displays a simple message to the user
