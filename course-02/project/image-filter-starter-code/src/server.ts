@@ -1,6 +1,6 @@
 import express, { Request, Response } from 'express';
 import bodyParser from 'body-parser';
-import {filterImageFromURL, deleteLocalFiles} from './util/util';
+import {filterImageFromURL, emptyFileDir} from './util/util';
 
 
 const isImageURL = require('image-url-validator').default;
@@ -36,10 +36,7 @@ var onFinished = require('on-finished');
   // > try it {{host}}/persons?name=the_name
 
    //    4. deletes any files on the server on finish of the response
-  function emptyDir(){
-    const directory = __dirname + '/util/tmp';
-    fsExtra.emptyDirSync(directory);
-  }
+
 
   app.get( "/filteredimage/", async ( req: Request, res: Response ) => {
     let { image_url } = req.query;
@@ -49,12 +46,13 @@ var onFinished = require('on-finished');
       return res.status(400)
                 .send(`image url is required`);
     }
-    const is_image = await isImageURL(image_url); 
-    console.log(is_image);
+    
+    const is_image = image_url.match(/(https?:\/\/.*\.(?:png|jpg))/i) != null; 
     if(! is_image ){
       return res.status(400)
-                .send('the url must be an image');
+                .send('the url must be an image .png or .jpg');
     }
+
 
     //    2. call filterImageFromURL(image_url) to filter the image
     filterImageFromURL(image_url).then(function(filteredpath){
@@ -64,7 +62,7 @@ var onFinished = require('on-finished');
 
     //    4. deletes any files on the server on finish of the response
     onFinished(res, () => {
-      emptyDir(); 
+      emptyFileDir(); 
     });
 
 
