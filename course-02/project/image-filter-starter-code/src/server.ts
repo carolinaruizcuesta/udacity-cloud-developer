@@ -68,10 +68,6 @@ var onFinished = require('on-finished');
 
   });  
 
-
-  /**************************************************************************** */
-
-  //! END @TODO1
   
   // Root Endpoint
   // Displays a simple message to the user

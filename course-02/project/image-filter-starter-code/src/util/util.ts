@@ -34,11 +34,9 @@ export async function filterImageFromURL(inputURL: string): Promise<string>{
     });
 }
 
-// deleteLocalFiles
-// helper function to delete files on the local disk
+// emptyFileDir
+// helper function to empty the file directory
 // useful to cleanup after tasks
-// INPUTS
-//    files: Array<string> an array of absolute paths to files
 export async function emptyFileDir(){
     fsExtra.emptyDirSync(directory);
 }
